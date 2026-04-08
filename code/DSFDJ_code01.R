@@ -7,6 +7,7 @@
 library(tidyverse)
 library(ggbeeswarm)
 library(ggsci)
+library(patchwork)
 
 ### Data ----------------------------------------------------------------------
 DDR_SCORE01 <- read_csv("data/DDR_DP_SCORE_01.csv") |> print()
@@ -48,7 +49,7 @@ df1 <- DDR_SCORE01 |>
   print()
 
 ### First, do take a glance ---------------------------------------------------
-df1 |> 
+p1 <- df1 |> 
   ggplot(aes(x = tune, y = SCORE, colour = tune)) +
   geom_boxplot(outliers = FALSE) +
   ggbeeswarm::geom_quasirandom() +
@@ -58,6 +59,7 @@ df1 |>
     aspect.ratio = 2, 
     legend.position = "none", 
     axis.text.x  = element_text(angle = 90, size = 12) )
+(p1)
 
 ### Statistical test ----------------------------------------------------------
 t.test(data = df1, SCORE ~ tune)
@@ -72,7 +74,7 @@ df2 <- DDR_SCORE01 |>
   print()
 
 ### First, do take a glance ---------------------------------------------------
-df2 |> 
+p2 <- df2 |> 
   ggplot(aes(x = tune, y = SCORE, colour = tune)) +
   geom_boxplot(outliers = FALSE) +
   ggbeeswarm::geom_quasirandom() +
@@ -82,10 +84,37 @@ df2 |>
     aspect.ratio = 2, 
     legend.position = "none", 
     axis.text.x  = element_text(angle = 90, size = 12) )
+(p2)
 
 ### Statistical test ----------------------------------------------------------
 t.test(data = df2, SCORE ~ tune)
 wilcox.test(data = df2, SCORE ~ tune)
+
+
+## Appendix ===================================================================
+p3a <- df1 |> 
+  ggplot(aes(x = tune, y = SCORE)) +
+  geom_boxplot(outliers = FALSE) +
+  ggbeeswarm::geom_quasirandom(aes(colour = factor(day))) +
+  ggsci::scale_color_lancet() +
+  theme_classic() +
+  theme(
+    aspect.ratio = 2, 
+    legend.position = "none", 
+    axis.text.x  = element_text(angle = 90, size = 12) )
+
+p3b <- df2 |> 
+  ggplot(aes(x = tune, y = SCORE)) +
+  geom_boxplot(outliers = FALSE) +
+  ggbeeswarm::geom_quasirandom(aes(colour = factor(day))) +
+  ggsci::scale_color_lancet() +
+  theme_classic() +
+  theme(
+    aspect.ratio = 2, 
+    legend.position = "none", 
+    axis.text.x  = element_text(angle = 90, size = 12) )
+
+(p3a + p3b) # This operation errors out without `patchwork` package
 
 
 ## Session info ===============================================================
@@ -110,9 +139,10 @@ sessionInfo()
 # [1] stats     graphics  grDevices datasets  utils     methods   base     
 # 
 # other attached packages:
-#  [1] ggsci_4.2.0      ggbeeswarm_0.7.3 lubridate_1.9.5  forcats_1.0.1   
-#  [5] stringr_1.6.0    dplyr_1.2.0      purrr_1.2.1      readr_2.2.0     
-#  [9] tidyr_1.3.2      tibble_3.3.1     ggplot2_4.0.2    tidyverse_2.0.0 
+#  [1] patchwork_1.3.2  ggsci_4.2.0      ggbeeswarm_0.7.3 lubridate_1.9.5 
+#  [5] forcats_1.0.1    stringr_1.6.0    dplyr_1.2.0      purrr_1.2.1     
+#  [9] readr_2.2.0      tidyr_1.3.2      tibble_3.3.1     ggplot2_4.0.2   
+# [13] tidyverse_2.0.0 
 # 
 # loaded via a namespace (and not attached):
 #  [1] bit_4.6.0          gtable_0.3.6       crayon_1.5.3      
@@ -127,4 +157,5 @@ sessionInfo()
 # [28] beeswarm_0.4.0     lifecycle_1.0.5    vipor_0.4.7       
 # [31] vctrs_0.7.2        glue_1.8.0         farver_2.1.2      
 # [34] tools_4.5.2        pkgconfig_2.0.3
+
 
