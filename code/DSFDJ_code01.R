@@ -14,8 +14,35 @@ dput(names(DDR_SCORE01))
 dput(sort(unique(DDR_SCORE01$tune)))
 
 
-## Comparison 1 ===============================================================
-### Extract subset of interest ------------------------------------------------
+## Behavior of NA =============================================================
+### In calculation ------------------------------------------------------------
+print(5 + NA)
+max(1, 10, -5, NA)
+
+### In logical operations -----------------------------------------------------
+any(TRUE,  TRUE,  FALSE)
+any(FALSE, FALSE, FALSE)
+all(TRUE,  TRUE,  FALSE)
+all(TRUE,  TRUE,  TRUE)
+
+any(TRUE,  TRUE,  FALSE, NA)
+any(FALSE, FALSE, FALSE, NA)
+all(TRUE,  TRUE,  FALSE, NA)
+all(TRUE,  TRUE,  TRUE,  NA)
+
+### In tibble -----------------------------------------------------------------
+animals <- tibble(
+  species = c("dog", "monkey", "cat", "pheasant", "snake", "starfish"),
+  is_ally = c(TRUE,  TRUE,     FALSE, TRUE,       FALSE,   NA)
+    ) |> 
+  print()
+
+animals |> dplyr::filter(is_ally)
+animals |> dplyr::filter(!is_ally)
+
+
+## Example 1 ==================================================================
+### Extract the subset of interest --------------------------------------------
 df1 <- DDR_SCORE01 |> 
   dplyr::filter(tune %in% c("3y3sBDP",  "キモプリBDP")) |> 
   print()
@@ -37,8 +64,8 @@ t.test(data = df1, SCORE ~ tune)
 wilcox.test(data = df1, SCORE ~ tune)
 
 
-## Comparison 2 ===============================================================
-### Extract subset of interest ------------------------------------------------
+## Example 2 ==================================================================
+### Extract the subset of interest --------------------------------------------
 df2 <- DDR_SCORE01 |> 
   dplyr::filter(tune %in% c("シルドリDDP", "トリジャニDDP")) |> 
   dplyr::mutate(tune = factor(tune, levels = c("トリジャニDDP", "シルドリDDP"))) |> 
