@@ -42,6 +42,17 @@ animals |> dplyr::filter(is_ally)
 animals |> dplyr::filter(!is_ally)
 
 
+## Types ======================================================================
+chrs_auto <- seq(1, 22)
+class(chrs_auto)
+purrr::keep(chrs_auto, ~(0 < . & . < 2))
+
+chrs_all <- c(seq(1, 22), "X")
+class(chrs_all)
+purrr::keep(chrs_all, ~(0 < . & . < 2))
+chrs_all |> purrr::keep(~. != "X") |> purrr::keep(~(0 < . & . < 2))
+
+
 ## Example 1 ==================================================================
 ### Extract the subset of interest --------------------------------------------
 df1 <- DDR_SCORE01 |> 
