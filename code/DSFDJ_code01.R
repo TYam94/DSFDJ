@@ -45,6 +45,7 @@ animals |> dplyr::filter(!is_ally)
 ## Types ======================================================================
 chrs_auto <- seq(1, 22)
 class(chrs_auto)
+<<<<<<< HEAD
 purrr::keep(chrs_auto, ~(1 <= . & . <= 22))
 
 chrs_all <- c(seq(1, 22), "X")
@@ -55,6 +56,14 @@ chrs_all |> purrr::keep(~. != "X") |> purrr::keep(~(1 <= . & . <= 22))
 chrs_num <- as.character(seq(1, 24))
 class(chrs_num)
 purrr::keep(chrs_num, ~(1 <= . & . <= 22))
+=======
+purrr::keep(chrs_auto, ~(0 < . & . < 2))
+
+chrs_all <- c(seq(1, 22), "X")
+class(chrs_all)
+purrr::keep(chrs_all, ~(0 < . & . < 2))
+chrs_all |> purrr::keep(~. != "X") |> purrr::keep(~(0 < . & . < 2))
+>>>>>>> 75c6b010191824ed6df295427008bb2ca5ef3497
 
 
 ## Example 1 ==================================================================
