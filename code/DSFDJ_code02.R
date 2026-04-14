@@ -8,6 +8,7 @@ library(tidyverse)
 library(ggbeeswarm)
 library(ggsci)
 library(broom)
+library(broom.helpers)
 library(gt)
 library(gtsummary)
 
