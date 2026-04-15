@@ -17,19 +17,21 @@ dput(sort(unique(DDR_SCORE01$tune)))
 
 ## Behavior of NA =============================================================
 ### In calculation ------------------------------------------------------------
-print(5 + NA)
-max(1, 10, -5, NA)
+print(5 + NA)      # to be NA
+max(1, 10, -5, NA) # to be NA
 
 ### In logical operations -----------------------------------------------------
+# Behaviors of `any` and `all`
 any(TRUE,  TRUE,  FALSE)
 any(FALSE, FALSE, FALSE)
 all(TRUE,  TRUE,  FALSE)
 all(TRUE,  TRUE,  TRUE)
 
-any(TRUE,  TRUE,  FALSE, NA)
-any(FALSE, FALSE, FALSE, NA)
-all(TRUE,  TRUE,  FALSE, NA)
-all(TRUE,  TRUE,  TRUE,  NA)
+# Behaviors with NA
+any(TRUE,  TRUE,  FALSE, NA)  # is TRUE, regardless of what comes into `NA`
+any(FALSE, FALSE, FALSE, NA)  # Uncertain
+all(TRUE,  TRUE,  FALSE, NA)  # is FALSE, regardless of what comes into `NA`
+all(TRUE,  TRUE,  TRUE,  NA)  # Uncertain
 
 ### In tibble -----------------------------------------------------------------
 animals <- tibble(
@@ -38,20 +40,31 @@ animals <- tibble(
     ) |> 
   print()
 
-animals |> dplyr::filter(is_ally)
-animals |> dplyr::filter(!is_ally)
+# Keeps ally of peach boy
+animals |> dplyr::filter(is_ally) 
+
+# This keeps only those who is known not being ally
+animals |> dplyr::filter(!is_ally) 
+
+# To keep "Not known being ally", NA should be included explicitly
+animals |> dplyr::filter( is.na(is_ally) | !is_ally )
 
 
 ## Types ======================================================================
+# These lines works well
 chrs_auto <- seq(1, 22)
 class(chrs_auto)
 purrr::keep(chrs_auto, ~(1 <= . & . <= 22))
 
+# If you bind numbers with letters, class will be `character`
 chrs_all <- c(seq(1, 22), "X")
 class(chrs_all)
+sort(chrs_all)
+# Applying inequalities to this provokes dictionary-order comparing implicitly
 purrr::keep(chrs_all, ~(1 <= . & . <= 22))
 chrs_all |> purrr::keep(~. != "X") |> purrr::keep(~(1 <= . & . <= 22))
 
+# For chromosomes, there are way to denote sex chromosomes as 23 and 24
 chrs_num <- as.character(seq(1, 24))
 class(chrs_num)
 purrr::keep(chrs_num, ~(1 <= . & . <= 22))
@@ -62,6 +75,9 @@ purrr::keep(chrs_num, ~(1 <= . & . <= 22))
 df1 <- DDR_SCORE01 |> 
   dplyr::filter(tune %in% c("3y3sBDP",  "キモプリBDP")) |> 
   print()
+
+# The actual content of `filter` is T/Fs of the length equal to the row counts 
+DDR_SCORE01$tune %in% c("3y3sBDP",  "キモプリBDP")
 
 ### First, do take a glance ---------------------------------------------------
 p1 <- df1 |> 
@@ -77,16 +93,30 @@ p1 <- df1 |>
 (p1)
 
 ### Statistical test ----------------------------------------------------------
+# Pass data-frame (tibble) and assign columns to do test.
 t.test(data = df1, SCORE ~ tune)
 wilcox.test(data = df1, SCORE ~ tune)
+
+# Test functions can take two vectors of same lengths.
+t.test(df1$SCORE ~ df1$tune)
+wilcox.test(df1$SCORE ~ df1$tune)
 
 
 ## Example 2 ==================================================================
 ### Extract the subset of interest --------------------------------------------
 df2 <- DDR_SCORE01 |> 
   dplyr::filter(tune %in% c("シルドリDDP", "トリジャニDDP")) |> 
+  # Make `tune` to ordered vector
   dplyr::mutate(tune = factor(tune, levels = c("トリジャニDDP", "シルドリDDP"))) |> 
   print()
+
+# If the vector contains item not listed in `levels`, they will be NA
+c("A", "B", "C")
+c("A", "B", "C") |> factor(levels = c("B", "A"))
+
+# To get around this, use `forcats::fct_relevel()` instead.
+c("A", "B", "C") |> fct_relevel("B", after = 0)
+
 
 ### First, do take a glance ---------------------------------------------------
 p2 <- df2 |> 
