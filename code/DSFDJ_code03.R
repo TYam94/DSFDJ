@@ -241,6 +241,12 @@ summary(gfc_negbinom0)
 
 anova(gfc_negbinom1, gfc_negbinom0)
 
+### With interaction terms ----------------------------------------------------
+gfc_negbinom2 <- df2 |> 
+  glm.nb(data = _, formula = Miss + Gd ~ tune + day + tune * day + offset(log(NOTES_total)))
+summary(gfc_negbinom2)
+gtsummary::tbl_regression(gfc_negbinom2)
+
 
 ## ANOVA ======================================================================
 ### First, do take a glance ---------------------------------------------------
