@@ -11,6 +11,9 @@ library(ggpubr)
 library(broom)
 library(broom.helpers)
 library(patchwork)
+library(forecast)
+library(ggfortify)
+library(KFAS)
 
 ### seed ----------------------------------------------------------------------
 # This will fix the table of "random" numbers to be appear
@@ -147,6 +150,62 @@ summary(sim_ts3_ols)
 summary(sim_ts3_gls)
 
 
+## ARIMA ======================================================================
+### Take a glance -------------------------------------------------------------
+plot(Nile)
+plot(JohnsonJohnson)
+
+### Nile with ARIMAX ----------------------------------------------------------
+Nile_ARIMAX <- 
+  forecast::auto.arima(
+    Nile, 
+    xreg = ts(c(rep(0, 31), rep(1, 69))) )
+(Nile_ARIMAX)
+autoplot(Nile_ARIMAX) + theme_classic()
+
+### J&J with log-transformed SARIMA -------------------------------------------
+JJ_ARIMA <- 
+  forecast::auto.arima(
+    JohnsonJohnson,
+    lambda = 0
+    )
+(JJ_ARIMA)
+autoplot(JJ_ARIMA) + theme_classic()
+
+
+## KFAS =======================================================================
+### Nile with KFAS ------------------------------------------------------------
+Nile_KF_model <- SSModel(Nile ~ SSMtrend(degree = 1, Q = list(matrix(NA))), H = matrix(NA))
+
+Nile_KF_fit <- fitSSM(Nile_KF_model, inits = c(log(var(Nile)), log(var(Nile))))
+
+Nile_KF_out <- KFS(Nile_KF_fit$model)
+
+plot(Nile, col = "darkgray", lwd = 2, main = "Nile River Flow - Local Level Model")
+lines(signal(Nile_KF_out, states = "all", filtered = TRUE)$signal, col = "blue", lwd = 2)
+lines(signal(Nile_KF_out, states = "all")$signal, col = "red", lwd = 2, lty = 2)
+legend("bottomleft", legend = c("Observed", "Filtered", "Smoothed"), 
+       col = c("darkgray", "blue", "red"), lty = 1, lwd = 2)
+
+### JJ with KFAS --------------------------------------------------------------
+JJ_KF_model <- SSModel(
+  JohnsonJohnson ~ 
+    SSMtrend(degree = 2, Q = list(matrix(NA), matrix(0)))
+    + SSMseasonal(period = 4, sea.type = "dummy", Q = matrix(NA)),
+  H = matrix(NA))
+
+JJ_KF_fit <- fitSSM(JJ_KF_model, inits = rep(log(var(JohnsonJohnson) / 10), 3))
+
+JJ_KF_out <- KFS(JJ_KF_fit$model)
+
+plot(JohnsonJohnson, col = "darkgray", lwd = 2, main = "Johnson & Johnson Earnings")
+lines(signal(JJ_KF_out, states = "all", filtered = TRUE)$signal, col = "blue", lwd = 2)
+lines(signal(JJ_KF_out, states = "all")$signal, col = "red", lwd = 2, lty = 2)
+legend("topleft", legend = c("Observed", "Filtered", "Smoothed"), 
+       col = c("darkgray", "blue", "red"), lty = 1, lwd = 2)
+
+
+
 ## Session info ===============================================================
 sessionInfo()
 # > sessionInfo()
@@ -169,24 +228,28 @@ sessionInfo()
 # [1] stats     graphics  grDevices datasets  utils     methods   base     
 # 
 # other attached packages:
-#  [1] patchwork_1.3.2      broom.helpers_1.22.0 broom_1.0.12        
-#  [4] ggpubr_0.6.3         ggsci_4.2.0          nlme_3.1-169        
-#  [7] lubridate_1.9.5      forcats_1.0.1        stringr_1.6.0       
-# [10] dplyr_1.2.0          purrr_1.2.1          readr_2.2.0         
-# [13] tidyr_1.3.2          tibble_3.3.1         ggplot2_4.0.2       
-# [16] tidyverse_2.0.0     
+#  [1] KFAS_1.6.0           ggfortify_0.4.19     forecast_9.0.2      
+#  [4] patchwork_1.3.2      broom.helpers_1.22.0 broom_1.0.12        
+#  [7] ggpubr_0.6.3         ggsci_4.2.0          nlme_3.1-169        
+# [10] lubridate_1.9.5      forcats_1.0.1        stringr_1.6.0       
+# [13] dplyr_1.2.0          purrr_1.2.1          readr_2.2.0         
+# [16] tidyr_1.3.2          tibble_3.3.1         ggplot2_4.0.2       
+# [19] tidyverse_2.0.0     
 # 
 # loaded via a namespace (and not attached):
-#  [1] gtable_0.3.6       ggsignif_0.6.4     compiler_4.5.2    
-#  [4] renv_1.1.7         tidyselect_1.2.1   scales_1.4.0      
-#  [7] lattice_0.22-9     R6_2.6.1           labeling_0.4.3    
-# [10] generics_0.1.4     Formula_1.2-5      backports_1.5.0   
-# [13] car_3.1-5          pillar_1.11.1      RColorBrewer_1.1-3
-# [16] tzdb_0.5.0         rlang_1.1.7        utf8_1.2.6        
-# [19] stringi_1.8.7      S7_0.2.1           timechange_0.4.0  
-# [22] cli_3.6.5          withr_3.0.2        magrittr_2.0.4    
-# [25] grid_4.5.2         rstudioapi_0.18.0  hms_1.1.4         
-# [28] lifecycle_1.0.5    vctrs_0.7.2        rstatix_0.7.3     
-# [31] glue_1.8.0         farver_2.1.2       abind_1.4-8       
-# [34] carData_3.0-6      tools_4.5.2        pkgconfig_2.0.3
+#  [1] utf8_1.2.6         generics_0.1.4     renv_1.1.7        
+#  [4] rstatix_0.7.3      stringi_1.8.7      lattice_0.22-9    
+#  [7] hms_1.1.4          magrittr_2.0.4     grid_4.5.2        
+# [10] timechange_0.4.0   RColorBrewer_1.1-3 backports_1.5.0   
+# [13] Formula_1.2-5      gridExtra_2.3      scales_1.4.0      
+# [16] abind_1.4-8        cli_3.6.5          rlang_1.1.7       
+# [19] withr_3.0.2        tools_4.5.2        parallel_4.5.2    
+# [22] tzdb_0.5.0         ggsignif_0.6.4     colorspace_2.1-2  
+# [25] vctrs_0.7.2        R6_2.6.1           zoo_1.8-15        
+# [28] lifecycle_1.0.5    car_3.1-5          urca_1.3-4        
+# [31] pkgconfig_2.0.3    pillar_1.11.1      gtable_0.3.6      
+# [34] glue_1.8.0         Rcpp_1.1.1         tidyselect_1.2.1  
+# [37] rstudioapi_0.18.0  farver_2.1.2       labeling_0.4.3    
+# [40] carData_3.0-6      timeDate_4052.112  fracdiff_1.5-4    
+# [43] compiler_4.5.2     S7_0.2.1
 
